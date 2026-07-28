@@ -1,72 +1,88 @@
 import java.util.*;
 
 class Solution {
-    
-    private boolean isSafe(int[][] maze, int n, int x, int y, int[][] visited){
-        return (x >= 0 && x < n &&
-                y >= 0 && y < n &&
-                visited[x][y] == 0 &&
-                maze[x][y] == 1);
+
+    static boolean isSafeToMove(int[][] maze, int n, int newx, int newy, boolean[][] visited) {
+
+        // Boundary check
+        if (newx < 0 || newx >= n || newy < 0 || newy >= n)
+            return false;
+
+        // Cell is blocked
+        if (maze[newx][newy] == 0)
+            return false;
+
+        // Already visited
+        if (visited[newx][newy])
+            return false;
+
+        return true;
     }
-    
-    private void solve(int[][] maze, int n, int x, int y,
-                       StringBuilder path,
-                       ArrayList<String> ans,
-                       int[][] visited){
-        
+
+    static void solve(int[][] maze, int srcx, int srcy,
+                      int desx, int desy,
+                      ArrayList<String> ans,
+                      boolean[][] visited,
+                      String path) {
+
         // Destination reached
-        if(x == n-1 && y == n-1){
-            ans.add(path.toString());
+        if (srcx == desx && srcy == desy) {
+            ans.add(path);
             return;
         }
-        
-        visited[x][y] = 1;
-        
-        // D
-        if(isSafe(maze, n, x+1, y, visited)){
-            path.append('D');
-            solve(maze, n, x+1, y, path, ans, visited);
-            path.deleteCharAt(path.length() - 1);
-        }
-        
-        // L
-        if(isSafe(maze, n, x, y-1, visited)){
-            path.append('L');
-            solve(maze, n, x, y-1, path, ans, visited);
-            path.deleteCharAt(path.length() - 1);
-        }
-        
-        // R
-        if(isSafe(maze, n, x, y+1, visited)){
-            path.append('R');
-            solve(maze, n, x, y+1, path, ans, visited);
-            path.deleteCharAt(path.length() - 1);
-        }
-        
-        // U
-        if(isSafe(maze, n, x-1, y, visited)){
-            path.append('U');
-            solve(maze, n, x-1, y, path, ans, visited);
-            path.deleteCharAt(path.length() - 1);
-        }
-        
-        visited[x][y] = 0;   // Backtrack
-    }
-    
-    public ArrayList<String> ratInMaze(int[][] maze) {
-        
-        ArrayList<String> ans = new ArrayList<>();
+
         int n = maze.length;
-        
-        // Important edge case
-        if(maze[0][0] == 0 || maze[n-1][n-1] == 0)
+
+        visited[srcx][srcy] = true;
+
+        // Up
+        int newx = srcx - 1;
+        int newy = srcy;
+        if (isSafeToMove(maze, n, newx, newy, visited)) {
+            solve(maze, newx, newy, desx, desy, ans, visited, path + "U");
+        }
+
+        // Down
+        newx = srcx + 1;
+        newy = srcy;
+        if (isSafeToMove(maze, n, newx, newy, visited)) {
+            solve(maze, newx, newy, desx, desy, ans, visited, path + "D");
+        }
+
+        // Left
+        newx = srcx;
+        newy = srcy - 1;
+        if (isSafeToMove(maze, n, newx, newy, visited)) {
+            solve(maze, newx, newy, desx, desy, ans, visited, path + "L");
+        }
+
+        // Right
+        newx = srcx;
+        newy = srcy + 1;
+        if (isSafeToMove(maze, n, newx, newy, visited)) {
+            solve(maze, newx, newy, desx, desy, ans, visited, path + "R");
+        }
+
+        // Backtracking
+        visited[srcx][srcy] = false;
+    }
+
+    public ArrayList<String> ratInMaze(int[][] maze) {
+
+        int n = maze.length;
+
+        ArrayList<String> ans = new ArrayList<>();
+
+        // Start or destination blocked
+        if (maze[0][0] == 0 || maze[n - 1][n - 1] == 0)
             return ans;
-        
-        int[][] visited = new int[n][n];
-        StringBuilder path = new StringBuilder();
-        
-        solve(maze, n, 0, 0, path, ans, visited);
-        
-        return ans;   // Already lexicographically sorted due to order
+
+        boolean[][] visited = new boolean[n][n];
+
+        solve(maze, 0, 0, n - 1, n - 1, ans, visited, "");
+
+        Collections.sort(ans);
+
+        return ans;
     }
 }
